@@ -62,4 +62,4 @@ jobs:
             docker stop $CONTAINER_NAME
             docker rm $CONTAINER_NAME
             docker pull $REGISTRY/$IMAGE_NAME:$TAG_NAME
-            docker run -p 50051:50051 --name $CONTAINER_NAME -t $REGISTRY/$IMAGE_NAME:$TAG_NAME
+            # docker run -p 50051:50051 --name $CONTAINER_NAME -t $REGISTRY/$IMAGE_NAME:$TAG_NAME
