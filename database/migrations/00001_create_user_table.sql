@@ -12,5 +12,5 @@ CREATE TABLE users (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE chats;
+DROP TABLE users;
 -- +goose StatementEnd

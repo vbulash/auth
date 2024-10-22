@@ -10,7 +10,7 @@ import (
 	"github.com/vbulash/auth/config"
 )
 
-// Get Получение данных из таблицы chats
+// Get Получение данных из таблицы users
 func Get(db *sqlx.DB) (*[]config.UserType, error) {
 	users := []config.UserType{}
 	err := db.Select(&users, "SELECT * FROM users")
