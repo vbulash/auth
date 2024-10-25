@@ -6,14 +6,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/vbulash/auth/config"
+
 	"github.com/brianvoe/gofakeit"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	user "github.com/vbulash/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
-
-const address = "localhost:50051"
 
 func closeConnection(conn *grpc.ClientConn) {
 	err := conn.Close()
@@ -23,6 +23,13 @@ func closeConnection(conn *grpc.ClientConn) {
 }
 
 func main() {
+	conf, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Ошибка загрузки .env: %v", err)
+	}
+	config.Config = conf
+
+	address := fmt.Sprintf("%s:%d", config.Config.ServerHost, config.Config.ServerPort)
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Фатальная ошибка коннекта к серверу: %v", err)
