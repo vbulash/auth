@@ -5,58 +5,93 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/vbulash/auth/internal/repository/user"
+
+	"github.com/vbulash/auth/internal/repository"
 
 	"github.com/vbulash/auth/config"
 
-	"github.com/brianvoe/gofakeit"
 	"github.com/golang/protobuf/ptypes/empty"
-	user "github.com/vbulash/auth/pkg/user_v1"
+	desc "github.com/vbulash/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type server struct {
-	user.UnimplementedAuthV1Server
+	desc.UnimplementedAuthV1Server
+	userRepository repository.UserRepository
 }
 
-func (s *server) Create(_ context.Context, _ *user.CreateRequest) (*user.CreateResponse, error) {
+func (s *server) Create(ctx context.Context, request *desc.CreateRequest) (*desc.CreateResponse, error) {
 	fmt.Println("Сервер: создание пользователя")
-	return &user.CreateResponse{
-		Id: gofakeit.Int64(),
+
+	id, err := s.userRepository.Create(ctx, &desc.UserInfo{
+		Name:     request.Name,
+		Email:    request.Email,
+		Password: request.Password,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &desc.CreateResponse{
+		Id: id,
 	}, nil
 }
 
-func (s *server) Get(_ context.Context, request *user.GetRequest) (*user.GetResponse, error) {
+func (s *server) Get(ctx context.Context, request *desc.GetRequest) (*desc.GetResponse, error) {
 	fmt.Println("Сервер: получение пользователя")
-	id := request.Id
-	record := &user.GetResponse{
-		Id:        id,
-		Name:      gofakeit.Name(),
-		Email:     gofakeit.Email(),
-		Role:      user.Role_USER,
-		CreatedAt: timestamppb.New(gofakeit.Date()),
-		UpdatedAt: timestamppb.New(gofakeit.Date()), // Может так статься, что эта дата будет раньше CreatedAt - пока пофиг
+
+	userObj, err := s.userRepository.Get(ctx, request.Id)
+	if err != nil {
+		return nil, err
 	}
-	return record, nil
+	return &desc.GetResponse{
+		Id:    userObj.Id,
+		Name:  userObj.Info.Name,
+		Email: userObj.Info.Email,
+		Role:  userObj.Info.Role,
+	}, nil
 }
 
-func (s *server) Update(_ context.Context, _ *user.UpdateRequest) (*empty.Empty, error) {
-	fmt.Println("Сервер: получение пользователя")
-	return &empty.Empty{}, nil
+func (s *server) Update(ctx context.Context, request *desc.UpdateRequest) (*empty.Empty, error) {
+	fmt.Println("Сервер: обновление пользователя")
+
+	err := s.userRepository.Update(ctx, request.Id, &desc.UserInfo{
+		Name:  request.Name.Value,
+		Email: request.Email.Value,
+		Role:  request.Role,
+	})
+	return &empty.Empty{}, err
 }
 
-func (s *server) Delete(_ context.Context, _ *user.DeleteRequest) (*empty.Empty, error) {
+func (s *server) Delete(ctx context.Context, request *desc.DeleteRequest) (*empty.Empty, error) {
 	fmt.Println("Сервер: удаление пользователя")
-	return &empty.Empty{}, nil
+	err := s.userRepository.Delete(ctx, request.Id)
+	return &empty.Empty{}, err
 }
 
 func main() {
+	ctx := context.Background()
+
 	conf, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Ошибка загрузки .env: %v", err)
 	}
 	config.Config = conf
+
+	poolConfig, err := pgxpool.ParseConfig(os.Getenv("DB_DSN"))
+	if err != nil {
+		log.Fatalf("Ошибка конфигурации pgxpool: %v", err)
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+	if err != nil {
+		log.Fatalf("Ошибка коннекта к БД: %v", err)
+	}
+
+	userRepo := user.NewUserRepository(pool)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Config.ServerPort))
 	if err != nil {
@@ -65,7 +100,9 @@ func main() {
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	user.RegisterAuthV1Server(s, &server{})
+	desc.RegisterAuthV1Server(s, &server{
+		userRepository: userRepo,
+	})
 
 	log.Printf("Сервер прослушивает: %v", lis.Addr())
 

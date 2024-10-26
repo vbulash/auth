@@ -6,10 +6,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+
 	"github.com/vbulash/auth/config"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	user "github.com/vbulash/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -72,12 +73,12 @@ func main() {
 	// Update
 	fmt.Println()
 	fmt.Println("Клиент: обновление пользователя")
-	name := wrappers.StringValue{Value: gofakeit.Name()}
-	email := wrappers.StringValue{Value: gofakeit.Email()}
+	name := gofakeit.Name()
+	email := gofakeit.Email()
 	record := &user.UpdateRequest{
 		Id:    id,
-		Name:  &name,
-		Email: &email,
+		Name:  &wrappers.StringValue{Value: name},
+		Email: &wrappers.StringValue{Value: email},
 		Role:  user.Role_USER,
 	}
 	// Отображение записи из-за ссылок / StringValue очень некрасивое, но в целом понятное
@@ -89,12 +90,12 @@ func main() {
 	fmt.Printf("Клиент: обновлена запись пользователя ID = %d\n", id)
 
 	// Delete
-	fmt.Println()
-	fmt.Println("Клиент: удаление пользователя")
-	fmt.Printf("Клиент: удаляем запись пользователя ID = %d\n", id)
-	_, err = client.Delete(ctx, &user.DeleteRequest{Id: id})
-	if err != nil {
-		log.Fatalf("Клиент: фатальная ошибка удаления записи пользователя ID = %d: %v", id, err)
-	}
-	fmt.Printf("Клиент: запись пользователя ID = %d удалена\n", id)
+	//fmt.Println()
+	//fmt.Println("Клиент: удаление пользователя")
+	//fmt.Printf("Клиент: удаляем запись пользователя ID = %d\n", id)
+	//_, err = client.Delete(ctx, &user.DeleteRequest{Id: id})
+	//if err != nil {
+	//	log.Fatalf("Клиент: фатальная ошибка удаления записи пользователя ID = %d: %v", id, err)
+	//}
+	//fmt.Printf("Клиент: запись пользователя ID = %d удалена\n", id)
 }
