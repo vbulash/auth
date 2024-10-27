@@ -2,8 +2,11 @@ package user
 
 import (
 	"context"
+	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/vbulash/auth/internal/repository"
 	"github.com/vbulash/auth/internal/repository/user/model"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -21,10 +24,22 @@ func NewUserRepository(db *pgxpool.Pool) repository.UserRepository {
 }
 
 func (r *repo) Create(ctx context.Context, info *desc.UserInfo) (int64, error) {
+	creates := make(map[string]interface{})
+	creates["name"] = info.GetName()
+	creates["email"] = info.GetEmail()
+	creates["password"] = info.GetPassword()
+
+	query, args, err := squirrel.Insert("chats").
+		SetMap(creates).
+		Suffix("RETURNING \"id\"").
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return 0, nil
+	}
+
 	var id int64
-	err := r.db.QueryRow(ctx,
-		"INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
-		info.GetName(), info.GetEmail(), info.GetPassword()).Scan(&id)
+	err = r.db.QueryRow(ctx, query, args...).Scan(&id)
 	if err != nil {
 		return 0, nil
 	}
@@ -32,10 +47,18 @@ func (r *repo) Create(ctx context.Context, info *desc.UserInfo) (int64, error) {
 }
 
 func (r *repo) Get(ctx context.Context, id int64) (*desc.User, error) {
+	query, args, err := squirrel.
+		Select("id, name, email, created_at, updated_at").
+		From("users").
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
 	var user model.User
-	err := r.db.QueryRow(ctx,
-		"SELECT id, name, email, password, created_at, updated_at FROM users WHERE id = $1", id).Scan(
-		&user.ID, &user.Info.Name, &user.Info.Email, &user.Info.Password, &user.CreatedAt, &user.UpdatedAt)
+	err = r.db.QueryRow(ctx, query, args...).
+		Scan(&user.ID, &user.Info.Name, &user.Info.Email, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -59,14 +82,40 @@ func (r *repo) Get(ctx context.Context, id int64) (*desc.User, error) {
 }
 
 func (r *repo) Update(ctx context.Context, id int64, info *desc.UserInfo) error {
-	_, err := r.db.Exec(ctx,
-		"UPDATE users SET name = $1, email = $2 WHERE id = $3",
-		info.GetName(), info.GetEmail(), id)
+	bUpdated := false
+	updates := make(map[string]interface{})
+	if len(info.GetName()) > 0 {
+		updates["name"] = info.GetName()
+		bUpdated = true
+	}
+	if len(info.GetEmail()) > 0 {
+		updates["email"] = info.GetEmail()
+		bUpdated = true
+	}
+	if bUpdated {
+		updates["updated_at"] = time.Now()
+	}
+
+	query, args, err := squirrel.Update("users").
+		SetMap(updates).
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec(ctx, query, args...)
 	return err
 }
 
 func (r *repo) Delete(ctx context.Context, id int64) error {
-	_, err := r.db.Exec(ctx,
-		"DELETE FROM users WHERE id = $1", id)
+	query, args, err := squirrel.Delete("users").
+		Where(squirrel.Eq{"id": id}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec(ctx, query, args...)
 	return err
 }

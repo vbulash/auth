@@ -49,10 +49,12 @@ func (s *server) Get(ctx context.Context, request *desc.GetRequest) (*desc.GetRe
 		return nil, err
 	}
 	return &desc.GetResponse{
-		Id:    userObj.Id,
-		Name:  userObj.Info.Name,
-		Email: userObj.Info.Email,
-		Role:  userObj.Info.Role,
+		Id:        userObj.Id,
+		Name:      userObj.Info.Name,
+		Email:     userObj.Info.Email,
+		Role:      userObj.Info.Role,
+		CreatedAt: userObj.CreatedAt,
+		UpdatedAt: userObj.UpdatedAt,
 	}, nil
 }
 
