@@ -8,9 +8,11 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/vbulash/auth/internal/model"
 	"github.com/vbulash/auth/internal/repository/user"
-
-	"github.com/vbulash/auth/internal/repository"
+	"github.com/vbulash/auth/internal/service"
+	user2 "github.com/vbulash/auth/internal/service/user"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/vbulash/auth/config"
 
@@ -22,16 +24,17 @@ import (
 
 type server struct {
 	desc.UnimplementedAuthV1Server
-	userRepository repository.UserRepository
+	serviceLayer service.UserService
 }
 
 func (s *server) Create(ctx context.Context, request *desc.CreateRequest) (*desc.CreateResponse, error) {
 	fmt.Println("Сервер: создание пользователя")
 
-	id, err := s.userRepository.Create(ctx, &desc.UserInfo{
-		Name:     request.Name,
-		Email:    request.Email,
-		Password: request.Password,
+	id, err := s.serviceLayer.Create(ctx, &model.UserInfo{
+		Name:     request.GetName(),
+		Email:    request.GetEmail(),
+		Password: request.GetPassword(),
+		Role:     int32(request.GetRole()),
 	})
 	if err != nil {
 		return nil, err
@@ -44,34 +47,41 @@ func (s *server) Create(ctx context.Context, request *desc.CreateRequest) (*desc
 func (s *server) Get(ctx context.Context, request *desc.GetRequest) (*desc.GetResponse, error) {
 	fmt.Println("Сервер: получение пользователя")
 
-	userObj, err := s.userRepository.Get(ctx, request.Id)
+	userObj, err := s.serviceLayer.Get(ctx, request.GetId())
 	if err != nil {
 		return nil, err
 	}
+
+	var createdAt, updatedAt *timestamppb.Timestamp
+	if userObj.UpdatedAt.Valid {
+		updatedAt = timestamppb.New(userObj.UpdatedAt.Time)
+	}
+	createdAt = timestamppb.New(userObj.CreatedAt)
+
 	return &desc.GetResponse{
-		Id:        userObj.Id,
+		Id:        userObj.ID,
 		Name:      userObj.Info.Name,
 		Email:     userObj.Info.Email,
-		Role:      userObj.Info.Role,
-		CreatedAt: userObj.CreatedAt,
-		UpdatedAt: userObj.UpdatedAt,
+		Role:      desc.Role(userObj.Info.Role),
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
 	}, nil
 }
 
 func (s *server) Update(ctx context.Context, request *desc.UpdateRequest) (*empty.Empty, error) {
 	fmt.Println("Сервер: обновление пользователя")
 
-	err := s.userRepository.Update(ctx, request.Id, &desc.UserInfo{
-		Name:  request.Name.Value,
-		Email: request.Email.Value,
-		Role:  request.Role,
+	err := s.serviceLayer.Update(ctx, request.Id, &model.UserInfo{
+		Name:  request.Name.GetValue(),
+		Email: request.Email.GetValue(),
+		Role:  int32(request.Role),
 	})
 	return &empty.Empty{}, err
 }
 
 func (s *server) Delete(ctx context.Context, request *desc.DeleteRequest) (*empty.Empty, error) {
 	fmt.Println("Сервер: удаление пользователя")
-	err := s.userRepository.Delete(ctx, request.Id)
+	err := s.serviceLayer.Delete(ctx, request.Id)
 	return &empty.Empty{}, err
 }
 
@@ -94,6 +104,7 @@ func main() {
 	}
 
 	userRepo := user.NewUserRepository(pool)
+	serviceLayer := user2.NewUserService(userRepo)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Config.ServerPort))
 	if err != nil {
@@ -103,7 +114,7 @@ func main() {
 	s := grpc.NewServer()
 	reflection.Register(s)
 	desc.RegisterAuthV1Server(s, &server{
-		userRepository: userRepo,
+		serviceLayer: serviceLayer,
 	})
 
 	log.Printf("Сервер прослушивает: %v", lis.Addr())

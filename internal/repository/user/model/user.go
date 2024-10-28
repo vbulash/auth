@@ -18,4 +18,5 @@ type UserInfo struct {
 	Name     string `db:"name"`
 	Email    string `db:"email"`
 	Password string `db:"password"`
+	Role     int32  `db:"role"`
 }

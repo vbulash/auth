@@ -14,22 +14,23 @@ import (
 	desc "github.com/vbulash/auth/pkg/user_v1"
 )
 
-type repo struct {
+type repoLayer struct {
 	db *pgxpool.Pool
 }
 
-// NewUserRepository Создание репо
+// NewUserRepository Создание репо-слоя
 func NewUserRepository(db *pgxpool.Pool) repository.UserRepository {
-	return &repo{db: db}
+	return &repoLayer{db: db}
 }
 
-func (r *repo) Create(ctx context.Context, info *desc.UserInfo) (int64, error) {
+func (r *repoLayer) Create(ctx context.Context, info *desc.UserInfo) (int64, error) {
 	creates := make(map[string]interface{})
 	creates["name"] = info.GetName()
 	creates["email"] = info.GetEmail()
 	creates["password"] = info.GetPassword()
+	creates["role"] = int32(info.GetRole())
 
-	query, args, err := squirrel.Insert("chats").
+	query, args, err := squirrel.Insert("users").
 		SetMap(creates).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(squirrel.Dollar).
@@ -46,9 +47,9 @@ func (r *repo) Create(ctx context.Context, info *desc.UserInfo) (int64, error) {
 	return id, nil
 }
 
-func (r *repo) Get(ctx context.Context, id int64) (*desc.User, error) {
+func (r *repoLayer) Get(ctx context.Context, id int64) (*desc.User, error) {
 	query, args, err := squirrel.
-		Select("id, name, email, created_at, updated_at").
+		Select("id, name, email, role, created_at, updated_at").
 		From("users").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
@@ -58,7 +59,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*desc.User, error) {
 	}
 	var user model.User
 	err = r.db.QueryRow(ctx, query, args...).
-		Scan(&user.ID, &user.Info.Name, &user.Info.Email, &user.CreatedAt, &user.UpdatedAt)
+		Scan(&user.ID, &user.Info.Name, &user.Info.Email, &user.Info.Role, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*desc.User, error) {
 	}, nil
 }
 
-func (r *repo) Update(ctx context.Context, id int64, info *desc.UserInfo) error {
+func (r *repoLayer) Update(ctx context.Context, id int64, info *desc.UserInfo) error {
 	bUpdated := false
 	updates := make(map[string]interface{})
 	if len(info.GetName()) > 0 {
@@ -90,6 +91,10 @@ func (r *repo) Update(ctx context.Context, id int64, info *desc.UserInfo) error 
 	}
 	if len(info.GetEmail()) > 0 {
 		updates["email"] = info.GetEmail()
+		bUpdated = true
+	}
+	if info.GetRole() != 0 {
+		updates["role"] = info.GetRole()
 		bUpdated = true
 	}
 	if bUpdated {
@@ -108,7 +113,7 @@ func (r *repo) Update(ctx context.Context, id int64, info *desc.UserInfo) error 
 	return err
 }
 
-func (r *repo) Delete(ctx context.Context, id int64) error {
+func (r *repoLayer) Delete(ctx context.Context, id int64) error {
 	query, args, err := squirrel.Delete("users").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).

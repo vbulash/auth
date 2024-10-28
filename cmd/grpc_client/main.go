@@ -39,7 +39,7 @@ func main() {
 
 	client := user.NewAuthV1Client(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
 	// Create
@@ -90,12 +90,12 @@ func main() {
 	fmt.Printf("Клиент: обновлена запись пользователя ID = %d\n", id)
 
 	// Delete
-	//fmt.Println()
-	//fmt.Println("Клиент: удаление пользователя")
-	//fmt.Printf("Клиент: удаляем запись пользователя ID = %d\n", id)
-	//_, err = client.Delete(ctx, &user.DeleteRequest{Id: id})
-	//if err != nil {
-	//	log.Fatalf("Клиент: фатальная ошибка удаления записи пользователя ID = %d: %v", id, err)
-	//}
-	//fmt.Printf("Клиент: запись пользователя ID = %d удалена\n", id)
+	fmt.Println()
+	fmt.Println("Клиент: удаление пользователя")
+	fmt.Printf("Клиент: удаляем запись пользователя ID = %d\n", id)
+	_, err = client.Delete(ctx, &user.DeleteRequest{Id: id})
+	if err != nil {
+		log.Fatalf("Клиент: фатальная ошибка удаления записи пользователя ID = %d: %v", id, err)
+	}
+	fmt.Printf("Клиент: запись пользователя ID = %d удалена\n", id)
 }
