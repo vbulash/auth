@@ -2,12 +2,12 @@ package api
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	user3 "github.com/vbulash/auth/internal/api/user"
 	"log"
 	"net"
 	"os"
+
+	user3 "github.com/vbulash/auth/internal/api/user"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vbulash/auth/config"
@@ -19,22 +19,23 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// AppRun Инициализация и запуск приложения
 func AppRun() error {
 	ctx := context.Background()
 
 	conf, err := config.LoadConfig()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Ошибка загрузки .env: %v", err))
+		return fmt.Errorf("Ошибка загрузки .env: %v", err)
 	}
 	config.Config = conf
 
 	poolConfig, err := pgxpool.ParseConfig(os.Getenv("DB_DSN"))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Ошибка конфигурации pgxpool: %v", err))
+		return fmt.Errorf("Ошибка конфигурации pgxpool: %v", err)
 	}
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Ошибка коннекта к БД: %v", err))
+		return fmt.Errorf("Ошибка коннекта к БД: %v", err)
 	}
 
 	userRepo := user.NewUserRepository(pool)
@@ -43,7 +44,7 @@ func AppRun() error {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Config.ServerPort))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Фатальная ошибка запуска / прослушивания: %v", err))
+		return fmt.Errorf("Фатальная ошибка запуска / прослушивания: %v", err)
 	}
 
 	s := grpc.NewServer()
@@ -53,7 +54,7 @@ func AppRun() error {
 	log.Printf("Сервер ожидает вызовов: %v", lis.Addr())
 
 	if err = s.Serve(lis); err != nil {
-		return errors.New(fmt.Sprintf("Фатальная ошибка запуска сервера: %v", err))
+		return fmt.Errorf("Фатальная ошибка запуска сервера: %v", err)
 	}
 
 	return nil

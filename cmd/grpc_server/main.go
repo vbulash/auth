@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/vbulash/auth/internal/api"
 	"log"
+
+	"github.com/vbulash/auth/internal/api"
 )
 
 func main() {
