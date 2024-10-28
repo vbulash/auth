@@ -81,4 +81,4 @@ jobs:
             mv supervisor-auth-server.conf /etc/supervisor/conf.d
             echo "${{ secrets.SSH_USER_PASSWORD }}" | sudo -S supervisorctl reread
             echo "${{ secrets.SSH_USER_PASSWORD }}" | sudo -S sudo supervisorctl update
-            echo "${{ secrets.SSH_USER_PASSWORD }}" | sudo -S sudo supervisorctl restart auth-server
+            echo "${{ secrets.SSH_USER_PASSWORD }}" | sudo -S sudo supervisorctl restart auth-server || true
