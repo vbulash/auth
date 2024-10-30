@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/vbulash/auth/internal/client/db"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/vbulash/auth/internal/repository"
 	"github.com/vbulash/auth/internal/repository/user/model"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -15,11 +15,11 @@ import (
 )
 
 type repoLayer struct {
-	db *pgxpool.Pool
+	db db.Client
 }
 
 // NewUserRepository Создание репо-слоя
-func NewUserRepository(db *pgxpool.Pool) repository.UserRepository {
+func NewUserRepository(db db.Client) repository.UserRepository {
 	return &repoLayer{db: db}
 }
 
@@ -40,7 +40,11 @@ func (r *repoLayer) Create(ctx context.Context, info *desc.UserInfo) (int64, err
 	}
 
 	var id int64
-	err = r.db.QueryRow(ctx, query, args...).Scan(&id)
+	q := db.Query{
+		Name:     "auth.Create",
+		QueryRaw: query,
+	}
+	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id)
 	if err != nil {
 		return 0, nil
 	}
@@ -53,12 +57,17 @@ func (r *repoLayer) Get(ctx context.Context, id int64) (*desc.User, error) {
 		From("users").
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
+		Limit(1).
 		ToSql()
 	if err != nil {
 		return nil, err
 	}
 	var user model.User
-	err = r.db.QueryRow(ctx, query, args...).
+	q := db.Query{
+		Name:     "auth.Get",
+		QueryRaw: query,
+	}
+	err = r.db.DB().QueryRowContext(ctx, q, args...).
 		Scan(&user.ID, &user.Info.Name, &user.Info.Email, &user.Info.Role, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -105,11 +114,16 @@ func (r *repoLayer) Update(ctx context.Context, id int64, info *desc.UserInfo) e
 		SetMap(updates).
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
+		Limit(1).
 		ToSql()
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Exec(ctx, query, args...)
+	q := db.Query{
+		Name:     "auth.Update",
+		QueryRaw: query,
+	}
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	return err
 }
 
@@ -121,6 +135,10 @@ func (r *repoLayer) Delete(ctx context.Context, id int64) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Exec(ctx, query, args...)
+	q := db.Query{
+		Name:     "auth.Delete",
+		QueryRaw: query,
+	}
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	return err
 }
