@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"github.com/vbulash/auth/internal/api"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/vbulash/auth/internal/model"
@@ -18,7 +19,7 @@ type API struct {
 }
 
 // NewAPI Создание API
-func NewAPI(serviceLayer service.UserService) *API {
+func NewAPI(serviceLayer service.UserService) api.UserAPI {
 	return &API{serviceLayer: serviceLayer}
 }
 

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net"
 	"os"
 	"strconv"
 
@@ -14,12 +15,11 @@ type Env struct {
 	Username   string
 	Password   string
 	Port       int
+	DSN        string
 	ServerHost string
 	ServerPort int
+	Address    string
 }
-
-// Config Экземпляр конфигурации .env
-var Config *Env
 
 // LoadConfig Загрузка конфигурации из .env
 func LoadConfig() (*Env, error) {
@@ -32,11 +32,12 @@ func LoadConfig() (*Env, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	serverPort, err := strconv.Atoi(os.Getenv("SERVER_PORT"))
 	if err != nil {
 		return nil, err
 	}
+
+	address := net.JoinHostPort(os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))
 
 	return &Env{
 		Host:       os.Getenv("DB_HOST"),
@@ -44,7 +45,9 @@ func LoadConfig() (*Env, error) {
 		Username:   os.Getenv("DB_USERNAME"),
 		Password:   os.Getenv("DB_PASSWORD"),
 		Port:       port,
+		DSN:        os.Getenv("DB_DSN"),
 		ServerHost: os.Getenv("SERVER_HOST"),
 		ServerPort: serverPort,
+		Address:    address,
 	}, nil
 }

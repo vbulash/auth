@@ -38,7 +38,7 @@ jobs:
           cache-dependency-path: go.sum
       - name: Установка зависимостей
         run: go mod tidy
-      - name: Сборка исполняемого файла чат-сервера
+      - name: Сборка исполняемого файла сервиса аутентификации
         run: |
           go mod download
           go build -o auth-server cmd/grpc_server/main.go
@@ -66,7 +66,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "artifacts.tar"
           target: $SSH_TARGET
-      - name: Запуск чат-сервера
+      - name: Запуск сервиса аутентификации на домашнем сервере
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}

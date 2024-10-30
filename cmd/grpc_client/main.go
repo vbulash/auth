@@ -3,12 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/vbulash/auth/internal/config"
 	"log"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
-
-	"github.com/vbulash/auth/config"
 
 	"github.com/brianvoe/gofakeit"
 	user "github.com/vbulash/auth/pkg/user_v1"
