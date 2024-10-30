@@ -73,9 +73,9 @@ func (r *repoLayer) Get(ctx context.Context, id int64) (*desc.User, error) {
 	return &desc.User{
 		Id: user.ID,
 		Info: &desc.UserInfo{
-			Name:     user.Info.Name,
-			Email:    user.Info.Email,
-			Password: user.Info.Password,
+			Name:  user.Info.Name,
+			Email: user.Info.Email,
+			Role:  desc.Role(user.Info.Role),
 		},
 		CreatedAt: timestamppb.New(user.CreatedAt),
 		UpdatedAt: updatedAt,

@@ -2,15 +2,16 @@ package app
 
 import (
 	"context"
+	"log"
+
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/vbulash/auth/internal/api"
+	api "github.com/vbulash/auth/internal/api/user"
 	userAPI "github.com/vbulash/auth/internal/api/user"
 	"github.com/vbulash/auth/internal/config"
 	"github.com/vbulash/auth/internal/repository"
 	userRepository "github.com/vbulash/auth/internal/repository/user"
 	"github.com/vbulash/auth/internal/service"
 	userService "github.com/vbulash/auth/internal/service/user"
-	"log"
 )
 
 type serviceProvider struct {
@@ -18,7 +19,7 @@ type serviceProvider struct {
 	pool         *pgxpool.Pool
 	repoLayer    *repository.UserRepository
 	serviceLayer *service.UserService
-	apiLayer     *api.UserAPI
+	apiLayer     *api.UsersAPI
 }
 
 func newServiceProvider() *serviceProvider {
@@ -74,10 +75,10 @@ func (s *serviceProvider) ServiceLayer(ctx context.Context) *service.UserService
 }
 
 // APILayer Слой API
-func (s *serviceProvider) APILayer(ctx context.Context) *api.UserAPI {
+func (s *serviceProvider) APILayer(ctx context.Context) *api.UsersAPI {
 	if s.apiLayer == nil {
 		apiLayer := userAPI.NewAPI(*s.ServiceLayer(ctx))
-		s.apiLayer = &apiLayer
+		s.apiLayer = apiLayer
 	}
 	return s.apiLayer
 }

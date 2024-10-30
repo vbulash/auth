@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/vbulash/auth/internal/api"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/vbulash/auth/internal/model"
@@ -12,19 +11,19 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// API Слой API
-type API struct {
+// UsersAPI Слой API
+type UsersAPI struct {
 	desc.UnimplementedAuthV1Server
 	serviceLayer service.UserService
 }
 
 // NewAPI Создание API
-func NewAPI(serviceLayer service.UserService) api.UserAPI {
-	return &API{serviceLayer: serviceLayer}
+func NewAPI(serviceLayer service.UserService) *UsersAPI {
+	return &UsersAPI{serviceLayer: serviceLayer}
 }
 
 // Create Создание пользователя
-func (apiLayer *API) Create(ctx context.Context, request *desc.CreateRequest) (*desc.CreateResponse, error) {
+func (apiLayer *UsersAPI) Create(ctx context.Context, request *desc.CreateRequest) (*desc.CreateResponse, error) {
 	fmt.Println("Сервер: создание пользователя")
 
 	id, err := apiLayer.serviceLayer.Create(ctx, &model.UserInfo{
@@ -42,7 +41,7 @@ func (apiLayer *API) Create(ctx context.Context, request *desc.CreateRequest) (*
 }
 
 // Get Получение пользователя
-func (apiLayer *API) Get(ctx context.Context, request *desc.GetRequest) (*desc.GetResponse, error) {
+func (apiLayer *UsersAPI) Get(ctx context.Context, request *desc.GetRequest) (*desc.GetResponse, error) {
 	fmt.Println("Сервер: получение пользователя")
 
 	userObj, err := apiLayer.serviceLayer.Get(ctx, request.GetId())
@@ -67,7 +66,7 @@ func (apiLayer *API) Get(ctx context.Context, request *desc.GetRequest) (*desc.G
 }
 
 // Update Изменение пользователя
-func (apiLayer *API) Update(ctx context.Context, request *desc.UpdateRequest) (*empty.Empty, error) {
+func (apiLayer *UsersAPI) Update(ctx context.Context, request *desc.UpdateRequest) (*empty.Empty, error) {
 	fmt.Println("Сервер: обновление пользователя")
 
 	err := apiLayer.serviceLayer.Update(ctx, request.Id, &model.UserInfo{
@@ -79,7 +78,7 @@ func (apiLayer *API) Update(ctx context.Context, request *desc.UpdateRequest) (*
 }
 
 // Delete Удаление пользователя
-func (apiLayer *API) Delete(ctx context.Context, request *desc.DeleteRequest) (*empty.Empty, error) {
+func (apiLayer *UsersAPI) Delete(ctx context.Context, request *desc.DeleteRequest) (*empty.Empty, error) {
 	fmt.Println("Сервер: удаление пользователя")
 	err := apiLayer.serviceLayer.Delete(ctx, request.Id)
 	return &empty.Empty{}, err

@@ -2,15 +2,17 @@ package app
 
 import (
 	"context"
+	"log"
+	"net"
+
 	"github.com/vbulash/auth/internal/closer"
 	desc "github.com/vbulash/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"net"
 )
 
+// App Приложение
 type App struct {
 	serviceProvider *serviceProvider
 	grpcServer      *grpc.Server
