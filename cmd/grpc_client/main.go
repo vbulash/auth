@@ -6,9 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/vbulash/auth/config"
-	"github.com/vbulash/auth/database/operations"
-
 	"github.com/brianvoe/gofakeit"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	user "github.com/vbulash/auth/pkg/user_v1"
@@ -26,26 +23,6 @@ func closeConnection(conn *grpc.ClientConn) {
 }
 
 func main() {
-	// Week 2
-	config.Config = config.LoadConfig()
-
-	db, err := operations.InitDb()
-	if err != nil {
-		log.Fatalf("Фатальная ошибка коннекта к базе данных: %v", err)
-	}
-
-	operations.Seed(db)
-
-	users, err := operations.Get(db)
-	if err != nil {
-		log.Fatalf("Фатальная ошибка получения данных из базы данных: %v", err)
-	}
-	log.Println("Получены записи из таблицы users")
-	for index := range *users {
-		log.Printf("%#v\n", (*users)[index])
-	}
-
-	// Week 1
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Фатальная ошибка коннекта к серверу: %v", err)
