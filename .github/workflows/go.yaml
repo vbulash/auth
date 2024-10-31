@@ -1,10 +1,10 @@
 name: Go
-#on: [push]
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: [push]
+#on:
+#  push:
+#    branches: [ main, master ]
+#  pull_request:
+#    branches: [ main, master ]
 
 env:
   SSH_TARGET: /home/vbulash/learn/auth/week3
@@ -78,6 +78,7 @@ jobs:
             tar -xvf artifacts.tar 
             rm artifacts.tar
             mv .env.staging .env
+            sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${{ secrets.SSH_DB_PASSWORD }}/g" .env
             mv supervisor-auth-server.conf /etc/supervisor/conf.d
             echo "${{ secrets.SSH_USER_PASSWORD }}" | sudo -S supervisorctl reread
             echo "${{ secrets.SSH_USER_PASSWORD }}" | sudo -S sudo supervisorctl update
