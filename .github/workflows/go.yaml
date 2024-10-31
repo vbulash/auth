@@ -1,10 +1,9 @@
 name: Go
-on: [push]
-#  push:
-#    branches: [ main, master ]
-#  pull_request:
-#    branches: [ main, master ]
-#
+#on: [push]
+push:
+  branches: [ main, master ]
+pull_request:
+  branches: [ main, master ]
 
 env:
   SSH_TARGET: /home/vbulash/learn/auth/week3

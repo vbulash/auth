@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/vbulash/auth/internal/client/db/transaction"
+
 	"github.com/vbulash/auth/internal/client/db"
 	"github.com/vbulash/auth/internal/client/db/pg"
 	"github.com/vbulash/auth/internal/closer"
@@ -21,6 +23,7 @@ type serviceProvider struct {
 	env *config.Env
 
 	dbClient     db.Client
+	txManager    db.TxManager
 	repoLayer    *repository.UserRepository
 	serviceLayer *service.UserService
 	apiLayer     *api.UsersAPI
@@ -63,6 +66,15 @@ func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
 	return s.dbClient
 }
 
+// TxManager Менеджер транзакций
+func (s *serviceProvider) TxManager(ctx context.Context) db.TxManager {
+	if s.txManager == nil {
+		s.txManager = transaction.NewTransactionManager(s.DBClient(ctx).DB())
+	}
+
+	return s.txManager
+}
+
 // RepoLayer Слой репозитория
 func (s *serviceProvider) RepoLayer(ctx context.Context) *repository.UserRepository {
 	if s.repoLayer == nil {
@@ -75,7 +87,10 @@ func (s *serviceProvider) RepoLayer(ctx context.Context) *repository.UserReposit
 // ServiceLayer Слой сервиса
 func (s *serviceProvider) ServiceLayer(ctx context.Context) *service.UserService {
 	if s.serviceLayer == nil {
-		serviceLayer := userService.NewUserService(*s.RepoLayer(ctx))
+		serviceLayer := userService.NewUserService(
+			*s.RepoLayer(ctx),
+			s.TxManager(ctx),
+		)
 		s.serviceLayer = &serviceLayer
 	}
 	return s.serviceLayer

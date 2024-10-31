@@ -114,7 +114,6 @@ func (r *repoLayer) Update(ctx context.Context, id int64, info *desc.UserInfo) e
 		SetMap(updates).
 		Where(squirrel.Eq{"id": id}).
 		PlaceholderFormat(squirrel.Dollar).
-		Limit(1).
 		ToSql()
 	if err != nil {
 		return err

@@ -15,11 +15,18 @@ import (
 	"github.com/vbulash/auth/internal/client/db/prettier"
 )
 
+type key string
+
+const (
+	// TxKey ...
+	TxKey key = "tx"
+)
+
 type pg struct {
 	dbc *pgxpool.Pool
 }
 
-// NewDB Инициализатор клиента БД
+// NewDB ...
 func NewDB(dbc *pgxpool.Pool) db.DB {
 	return &pg{
 		dbc: dbc,
@@ -51,11 +58,21 @@ func (p *pg) ScanAllContext(ctx context.Context, dest interface{}, q db.Query, a
 func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (pgconn.CommandTag, error) {
 	logQuery(ctx, q, args...)
 
+	tx, ok := ctx.Value(TxKey).(pgx.Tx)
+	if ok {
+		return tx.Exec(ctx, q.QueryRaw, args...)
+	}
+
 	return p.dbc.Exec(ctx, q.QueryRaw, args...)
 }
 
 func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) (pgx.Rows, error) {
 	logQuery(ctx, q, args...)
+
+	tx, ok := ctx.Value(TxKey).(pgx.Tx)
+	if ok {
+		return tx.Query(ctx, q.QueryRaw, args...)
+	}
 
 	return p.dbc.Query(ctx, q.QueryRaw, args...)
 }
@@ -63,7 +80,16 @@ func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) 
 func (p *pg) QueryRowContext(ctx context.Context, q db.Query, args ...interface{}) pgx.Row {
 	logQuery(ctx, q, args...)
 
+	tx, ok := ctx.Value(TxKey).(pgx.Tx)
+	if ok {
+		return tx.QueryRow(ctx, q.QueryRaw, args...)
+	}
+
 	return p.dbc.QueryRow(ctx, q.QueryRaw, args...)
+}
+
+func (p *pg) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
+	return p.dbc.BeginTx(ctx, txOptions)
 }
 
 func (p *pg) Ping(ctx context.Context) error {
@@ -72,6 +98,11 @@ func (p *pg) Ping(ctx context.Context) error {
 
 func (p *pg) Close() {
 	p.dbc.Close()
+}
+
+// MakeContextTx ...
+func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
+	return context.WithValue(ctx, TxKey, tx)
 }
 
 func logQuery(ctx context.Context, q db.Query, args ...interface{}) {
