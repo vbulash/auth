@@ -24,8 +24,8 @@ type serviceProvider struct {
 
 	dbClient     db.Client
 	txManager    db.TxManager
-	repoLayer    *repository.UserRepository
-	serviceLayer *service.UserService
+	repoLayer    repository.UserRepository
+	serviceLayer service.UserService
 	apiLayer     *api.UsersAPI
 }
 
@@ -63,6 +63,7 @@ func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
 
 		s.dbClient = client
 	}
+
 	return s.dbClient
 }
 
@@ -76,31 +77,34 @@ func (s *serviceProvider) TxManager(ctx context.Context) db.TxManager {
 }
 
 // RepoLayer Слой репозитория
-func (s *serviceProvider) RepoLayer(ctx context.Context) *repository.UserRepository {
+func (s *serviceProvider) RepoLayer(ctx context.Context) repository.UserRepository {
 	if s.repoLayer == nil {
 		repoLayer := userRepository.NewUserRepository(s.DBClient(ctx))
-		s.repoLayer = &repoLayer
+		s.repoLayer = repoLayer
 	}
+
 	return s.repoLayer
 }
 
 // ServiceLayer Слой сервиса
-func (s *serviceProvider) ServiceLayer(ctx context.Context) *service.UserService {
+func (s *serviceProvider) ServiceLayer(ctx context.Context) service.UserService {
 	if s.serviceLayer == nil {
 		serviceLayer := userService.NewUserService(
-			*s.RepoLayer(ctx),
+			s.RepoLayer(ctx),
 			s.TxManager(ctx),
 		)
-		s.serviceLayer = &serviceLayer
+		s.serviceLayer = serviceLayer
 	}
+
 	return s.serviceLayer
 }
 
 // APILayer Слой API
 func (s *serviceProvider) APILayer(ctx context.Context) *api.UsersAPI {
 	if s.apiLayer == nil {
-		apiLayer := userAPI.NewAPI(*s.ServiceLayer(ctx))
+		apiLayer := userAPI.NewAPI(s.ServiceLayer(ctx))
 		s.apiLayer = apiLayer
 	}
+
 	return s.apiLayer
 }

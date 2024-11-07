@@ -2,7 +2,6 @@ package converter
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/vbulash/auth/internal/model"
 	desc "github.com/vbulash/auth/pkg/user_v1"
@@ -21,16 +20,15 @@ func ModelUserInfoToDescUserInfo(info *model.UserInfo) *desc.UserInfo {
 
 // ModelUserToDescUser Преобразование из модели в GRPC
 func ModelUserToDescUser(info *model.User) *desc.User {
-	var createdAt, updatedAt *timestamppb.Timestamp
+	var updatedAt *timestamppb.Timestamp
 	if info.UpdatedAt.Valid {
 		updatedAt = timestamppb.New(info.UpdatedAt.Time)
 	}
-	createdAt = timestamppb.New(info.CreatedAt)
 
 	return &desc.User{
 		Id:        info.ID,
 		Info:      ModelUserInfoToDescUserInfo(&info.Info),
-		CreatedAt: createdAt,
+		CreatedAt: timestamppb.New(info.CreatedAt),
 		UpdatedAt: updatedAt,
 	}
 }
@@ -47,9 +45,7 @@ func DescUserInfoToModelUserInfo(info *desc.UserInfo) *model.UserInfo {
 
 // DescUserToModelUser Преобразование из GRPC в модель
 func DescUserToModelUser(info *desc.User) *model.User {
-	var createdAt time.Time
 	var updateAt sql.NullTime
-	createdAt = info.CreatedAt.AsTime()
 	_ = updateAt.Scan(info.UpdatedAt.AsTime())
 
 	translatedInfo := DescUserInfoToModelUserInfo(info.Info)
@@ -57,7 +53,7 @@ func DescUserToModelUser(info *desc.User) *model.User {
 	return &model.User{
 		ID:        info.Id,
 		Info:      *translatedInfo,
-		CreatedAt: createdAt,
+		CreatedAt: info.CreatedAt.AsTime(),
 		UpdatedAt: updateAt,
 	}
 }

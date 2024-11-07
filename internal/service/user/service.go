@@ -35,25 +35,31 @@ func (s *serviceLayer) Create(ctx context.Context, info *model.UserInfo) (int64,
 		// ..
 		return nil
 	})
+
 	return id, err
 }
 
 func (s *serviceLayer) Get(ctx context.Context, id int64) (*model.User, error) {
 	var user *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-		nonConverted, err := s.repoLayer.Get(ctx, id)
+		var err error
+		user, err = s.repoLayer.Get(ctx, id)
 		if err != nil {
 			return err
 		}
-		user = converter.DescUserToModelUser(nonConverted)
 		// ...
 		return nil
 	})
+
 	return user, err
 }
 
 func (s *serviceLayer) Update(ctx context.Context, id int64, info *model.UserInfo) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+		if len(info.Name) == 0 && len(info.Email) == 0 && info.Role == 0 {
+			return nil
+		}
+
 		err := s.repoLayer.Update(ctx, id, converter.ModelUserInfoToDescUserInfo(info))
 		if err != nil {
 			return err
@@ -61,6 +67,7 @@ func (s *serviceLayer) Update(ctx context.Context, id int64, info *model.UserInf
 		// ...
 		return nil
 	})
+
 	return err
 }
 
@@ -73,5 +80,6 @@ func (s *serviceLayer) Delete(ctx context.Context, id int64) error {
 		// ...
 		return nil
 	})
+
 	return err
 }
