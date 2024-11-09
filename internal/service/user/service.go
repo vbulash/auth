@@ -1,0 +1,85 @@
+package user
+
+import (
+	"context"
+
+	"github.com/vbulash/auth/internal/client/db"
+
+	"github.com/vbulash/auth/internal/converter"
+	"github.com/vbulash/auth/internal/model"
+	"github.com/vbulash/auth/internal/repository"
+	"github.com/vbulash/auth/internal/service"
+)
+
+type serviceLayer struct {
+	repoLayer repository.UserRepository
+	txManager db.TxManager
+}
+
+// NewUserService Создание сервисного слоя
+func NewUserService(repo repository.UserRepository, txManager db.TxManager) service.UserService {
+	return &serviceLayer{
+		repoLayer: repo,
+		txManager: txManager,
+	}
+}
+
+func (s *serviceLayer) Create(ctx context.Context, info *model.UserInfo) (int64, error) {
+	var id int64
+	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+		var err error
+		id, err = s.repoLayer.Create(ctx, converter.ModelUserInfoToDescUserInfo(info))
+		if err != nil {
+			return err
+		}
+		// ..
+		return nil
+	})
+
+	return id, err
+}
+
+func (s *serviceLayer) Get(ctx context.Context, id int64) (*model.User, error) {
+	var user *model.User
+	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+		var err error
+		user, err = s.repoLayer.Get(ctx, id)
+		if err != nil {
+			return err
+		}
+		// ...
+		return nil
+	})
+
+	return user, err
+}
+
+func (s *serviceLayer) Update(ctx context.Context, id int64, info *model.UserInfo) error {
+	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+		if len(info.Name) == 0 && len(info.Email) == 0 && info.Role == 0 {
+			return nil
+		}
+
+		err := s.repoLayer.Update(ctx, id, converter.ModelUserInfoToDescUserInfo(info))
+		if err != nil {
+			return err
+		}
+		// ...
+		return nil
+	})
+
+	return err
+}
+
+func (s *serviceLayer) Delete(ctx context.Context, id int64) error {
+	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+		err := s.repoLayer.Delete(ctx, id)
+		if err != nil {
+			return err
+		}
+		// ...
+		return nil
+	})
+
+	return err
+}
