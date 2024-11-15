@@ -6,34 +6,33 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/vbulash/auth/internal/api/user"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/vbulash/auth/internal/repository"
+
+	"github.com/vbulash/auth/internal/model"
+	"github.com/vbulash/auth/internal/service/user"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
 
-	"github.com/vbulash/auth/internal/model"
-	"github.com/vbulash/auth/internal/service"
-	serviceMocks "github.com/vbulash/auth/internal/service/mocks"
+	repositoryMocks "github.com/vbulash/auth/internal/repository/mocks"
 	desc "github.com/vbulash/auth/pkg/user_v1"
 )
 
 func TestGet(t *testing.T) {
 	t.Parallel()
-	type userServiceMockFunc func(mc *minimock.Controller) service.UserService
+	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 
 	type args struct {
 		ctx     context.Context
-		request *desc.GetRequest
+		request int64
 	}
 
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		id = gofakeit.Int64()
-
+		id        = gofakeit.Int64()
 		name      = gofakeit.Name()
 		email     = gofakeit.Email()
 		password  = gofakeit.Password(true, true, true, true, true, 32)
@@ -43,11 +42,7 @@ func TestGet(t *testing.T) {
 
 		serviceErr = fmt.Errorf("ошибка при тестировании")
 
-		request = &desc.GetRequest{
-			Id: id,
-		}
-
-		serviceResponse = &model.User{
+		repositoryResponse = &model.User{
 			ID: id,
 			Info: model.UserInfo{
 				Name:     name,
@@ -62,35 +57,28 @@ func TestGet(t *testing.T) {
 			},
 		}
 
-		response = &desc.GetResponse{
-			Id:        id,
-			Name:      name,
-			Email:     email,
-			Role:      role,
-			CreatedAt: timestamppb.New(createdAt),
-			UpdatedAt: timestamppb.New(updatedAt),
-		}
+		serviceResponse = repositoryResponse
 	)
 	defer t.Cleanup(mc.Finish)
 
 	tests := []struct {
-		name            string
-		args            args
-		want            *desc.GetResponse
-		err             error
-		userServiceMock userServiceMockFunc
+		name               string
+		args               args
+		want               *model.User
+		err                error
+		userRepositoryMock userRepositoryMockFunc
 	}{
 		{
 			name: "Успешный вариант",
 			args: args{
 				ctx:     ctx,
-				request: request,
+				request: id,
 			},
-			want: response,
+			want: serviceResponse,
 			err:  nil,
-			userServiceMock: func(mc *minimock.Controller) service.UserService {
-				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.GetMock.Expect(ctx, id).Return(serviceResponse, nil)
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(ctx, id).Return(repositoryResponse, nil)
 				return mock
 			},
 		},
@@ -98,12 +86,12 @@ func TestGet(t *testing.T) {
 			name: "Неуспешный вариант",
 			args: args{
 				ctx:     ctx,
-				request: request,
+				request: id,
 			},
 			want: nil,
 			err:  serviceErr,
-			userServiceMock: func(mc *minimock.Controller) service.UserService {
-				mock := serviceMocks.NewUserServiceMock(mc)
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.GetMock.Expect(ctx, id).Return(nil, serviceErr)
 				return mock
 			},
@@ -115,10 +103,11 @@ func TestGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			userServiceMock := tt.userServiceMock(mc)
-			api := user.NewAPI(userServiceMock)
+			userRepositoryMock := tt.userRepositoryMock(mc)
+			// Упрощенный вариант инициализации сервиса - без менеджера транзакций
+			service := user.NewUserService(userRepositoryMock, nil)
 
-			resHandler, err := api.Get(tt.args.ctx, tt.args.request)
+			resHandler, err := service.Get(tt.args.ctx, tt.args.request)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, resHandler)
 		})

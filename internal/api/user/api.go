@@ -23,8 +23,6 @@ func NewAPI(serviceLayer service.UserService) *UsersAPI {
 
 // Create Создание пользователя
 func (apiLayer *UsersAPI) Create(ctx context.Context, request *desc.CreateRequest) (*desc.CreateResponse, error) {
-	//fmt.Println("Сервер: создание пользователя")
-
 	id, err := apiLayer.serviceLayer.Create(ctx, &model.UserInfo{
 		Name:     request.GetName(),
 		Email:    request.GetEmail(),
@@ -42,8 +40,6 @@ func (apiLayer *UsersAPI) Create(ctx context.Context, request *desc.CreateReques
 
 // Get Получение пользователя
 func (apiLayer *UsersAPI) Get(ctx context.Context, request *desc.GetRequest) (*desc.GetResponse, error) {
-	//fmt.Println("Сервер: получение пользователя")
-
 	userObj, err := apiLayer.serviceLayer.Get(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -66,8 +62,6 @@ func (apiLayer *UsersAPI) Get(ctx context.Context, request *desc.GetRequest) (*d
 
 // Update Изменение пользователя
 func (apiLayer *UsersAPI) Update(ctx context.Context, request *desc.UpdateRequest) (*empty.Empty, error) {
-	//fmt.Println("Сервер: обновление пользователя")
-
 	err := apiLayer.serviceLayer.Update(ctx, request.Id, &model.UserInfo{
 		Name:  request.Name.GetValue(),
 		Email: request.Email.GetValue(),
@@ -79,7 +73,6 @@ func (apiLayer *UsersAPI) Update(ctx context.Context, request *desc.UpdateReques
 
 // Delete Удаление пользователя
 func (apiLayer *UsersAPI) Delete(ctx context.Context, request *desc.DeleteRequest) (*empty.Empty, error) {
-	//fmt.Println("Сервер: удаление пользователя")
 	err := apiLayer.serviceLayer.Delete(ctx, request.Id)
 
 	return &empty.Empty{}, err
