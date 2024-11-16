@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vbulash/auth/internal/client/db"
+	"github.com/vbulash/platform_common/pkg/client/db"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/vbulash/auth/internal/repository"

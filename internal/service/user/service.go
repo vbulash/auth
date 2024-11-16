@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/vbulash/auth/internal/client/db"
+	"github.com/vbulash/platform_common/pkg/client/db"
 
 	"github.com/vbulash/auth/internal/converter"
 	"github.com/vbulash/auth/internal/model"

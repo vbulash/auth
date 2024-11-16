@@ -4,11 +4,11 @@ import (
 	"context"
 	"log"
 
-	"github.com/vbulash/auth/internal/client/db/transaction"
+	"github.com/vbulash/platform_common/pkg/client/db/transaction"
 
-	"github.com/vbulash/auth/internal/client/db"
-	"github.com/vbulash/auth/internal/client/db/pg"
-	"github.com/vbulash/auth/internal/closer"
+	"github.com/vbulash/platform_common/pkg/client/db"
+	"github.com/vbulash/platform_common/pkg/client/db/pg"
+	"github.com/vbulash/platform_common/pkg/closer"
 
 	api "github.com/vbulash/auth/internal/api/user"
 	userAPI "github.com/vbulash/auth/internal/api/user"
