@@ -51,8 +51,12 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/vbulash/platform_common v0.0.0-20241116070154-9c39d57cdf2e h1:a/F6SsMiZNDgOD0c34sugNVOzn91DGmhOfbaM7By6KU=
-github.com/vbulash/platform_common v0.0.0-20241116070154-9c39d57cdf2e/go.mod h1:4pTF4fOzpkz69Qz0Zd6YO37AZSMHU9nAJmH8ToR/N3M=
+github.com/vbulash/platform_common v0.0.0-20241117134022-0f11c730b530 h1:IYcZ3vtCtG21vceeCtLfGX4+4aLsK4N+hf0okN0wp0o=
+github.com/vbulash/platform_common v0.0.0-20241117134022-0f11c730b530/go.mod h1:pfw/4jvZ1y21/H+xcqsacRtJf/Pkw3NJu0ZOM+0CkDs=
+github.com/vbulash/platform_common v0.0.0-20241117144144-caf729c757d5 h1:RQ+2JCXP+qaAg+AMWldOg1MOSLk9XMcH7EiJdhs6qp4=
+github.com/vbulash/platform_common v0.0.0-20241117144144-caf729c757d5/go.mod h1:pfw/4jvZ1y21/H+xcqsacRtJf/Pkw3NJu0ZOM+0CkDs=
+github.com/vbulash/platform_common v1.0.1 h1:kmwO9uQuBcPlncj/cuOieWl7v/2zhJCLnrAn5fRhgPQ=
+github.com/vbulash/platform_common v1.0.1/go.mod h1:pfw/4jvZ1y21/H+xcqsacRtJf/Pkw3NJu0ZOM+0CkDs=
 golang.org/x/crypto v0.29.0 h1:L5SG1JTTXupVV3n6sUqMTeWbjAyfPwoda2DLX8J8FrQ=
 golang.org/x/crypto v0.29.0/go.mod h1:+F4F4N5hv6v38hfeYwTdx20oUvLLc+QfrE9Ax9HtgRg=
 golang.org/x/net v0.31.0 h1:68CPQngjLL0r2AlUKiSxtQFKvzRVbnzLwMUn5SzcLHo=

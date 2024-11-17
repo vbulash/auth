@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/vbulash/platform_common/pkg/config"
+
 	"github.com/vbulash/platform_common/pkg/client/db/transaction"
 
 	"github.com/vbulash/platform_common/pkg/client/db"
@@ -12,15 +14,16 @@ import (
 
 	api "github.com/vbulash/auth/internal/api/user"
 	userAPI "github.com/vbulash/auth/internal/api/user"
-	"github.com/vbulash/auth/internal/config"
 	"github.com/vbulash/auth/internal/repository"
 	userRepository "github.com/vbulash/auth/internal/repository/user"
 	"github.com/vbulash/auth/internal/service"
 	userService "github.com/vbulash/auth/internal/service/user"
+	"github.com/vbulash/platform_common/pkg/config/env"
 )
 
 type serviceProvider struct {
-	env *config.Env
+	pgConfig   config.PGConfig
+	grpcConfig config.GRPCConfig
 
 	dbClient     db.Client
 	txManager    db.TxManager
@@ -33,23 +36,36 @@ func newServiceProvider() *serviceProvider {
 	return &serviceProvider{}
 }
 
-// Env Конфигурация контейнера
-func (s *serviceProvider) Env() *config.Env {
-	if s.env == nil {
-		env, err := config.LoadConfig()
+func (s *serviceProvider) PGConfig() config.PGConfig {
+	if s.pgConfig == nil {
+		cfg, err := env.NewPGConfig()
 		if err != nil {
-			log.Fatalf("Ошибка загрузки .env: %v", err)
+			log.Fatalf("failed to get pg config: %s", err.Error())
 		}
-		s.env = env
+
+		s.pgConfig = cfg
 	}
 
-	return s.env
+	return s.pgConfig
+}
+
+func (s *serviceProvider) GRPCConfig() config.GRPCConfig {
+	if s.grpcConfig == nil {
+		cfg, err := env.NewGRPCConfig()
+		if err != nil {
+			log.Fatalf("failed to get grpc config: %s", err.Error())
+		}
+
+		s.grpcConfig = cfg
+	}
+
+	return s.grpcConfig
 }
 
 // DBClient Клиент БД
 func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
 	if s.dbClient == nil {
-		client, err := pg.New(ctx, s.Env().DSN)
+		client, err := pg.New(ctx, s.PGConfig().DSN())
 		if err != nil {
 			log.Fatalf("Ошибка создания db клиента: %v", err)
 		}
