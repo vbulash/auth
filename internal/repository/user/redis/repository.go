@@ -27,10 +27,10 @@ func NewUserRepository(cl cache.RedisClient) repository.UserRepository {
 }
 
 func (r *repoLayer) Create(ctx context.Context, info *desc.UserInfo) (int64, error) {
-	id := gofakeit.Int64()
+	id := gofakeit.Uint32()
 
 	user := &modelRepo.User{
-		ID:        id,
+		ID:        int64(id),
 		Name:      info.Name,
 		Email:     info.Email,
 		Password:  info.Password,
@@ -38,13 +38,13 @@ func (r *repoLayer) Create(ctx context.Context, info *desc.UserInfo) (int64, err
 		CreatedAt: time.Now().UnixNano(),
 	}
 
-	idStr := strconv.FormatInt(id, 10)
+	idStr := strconv.FormatInt(int64(id), 10)
 	err := r.cl.HashSet(ctx, idStr, user)
 	if err != nil {
 		return 0, err
 	}
 
-	return id, nil
+	return int64(id), nil
 }
 
 func (r *repoLayer) Get(ctx context.Context, id int64) (*model.User, error) {
@@ -73,7 +73,7 @@ func (r *repoLayer) Update(ctx context.Context, id int64, info *desc.UserInfo) e
 	if err != nil {
 		return err
 	}
-	createdAt := stored.CreatedAt.Unix()
+	createdAt := stored.CreatedAt.UnixNano()
 
 	idStr := strconv.FormatInt(id, 10)
 	updatedAt := time.Now().UnixNano()
