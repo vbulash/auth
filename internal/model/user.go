@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -20,3 +21,6 @@ type UserInfo struct {
 	Password string
 	Role     int32
 }
+
+// ErrorUserNotFound ...
+var ErrorUserNotFound = errors.New("Пользователь не найден")

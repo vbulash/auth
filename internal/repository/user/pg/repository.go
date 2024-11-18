@@ -1,14 +1,15 @@
-package user
+package pg
 
 import (
 	"context"
 	"fmt"
 
-	outermodel "github.com/vbulash/auth/internal/model"
-	innermodel "github.com/vbulash/auth/internal/repository/user/model"
+	innermodel "github.com/vbulash/auth/internal/repository/user/pg/model"
 
 	"strings"
 	"time"
+
+	outermodel "github.com/vbulash/auth/internal/model"
 
 	"github.com/vbulash/platform_common/pkg/client/db"
 

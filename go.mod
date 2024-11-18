@@ -7,8 +7,9 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/gojuno/minimock/v3 v3.4.2
 	github.com/golang/protobuf v1.5.4
+	github.com/gomodule/redigo v1.9.2
 	github.com/stretchr/testify v1.9.0
-	github.com/vbulash/platform_common v1.0.1
+	github.com/vbulash/platform_common v1.0.3
 	google.golang.org/grpc v1.68.0
 	google.golang.org/protobuf v1.35.2
 )
