@@ -68,6 +68,13 @@ func (r *repoLayer) Get(ctx context.Context, id int64) (*model.User, error) {
 }
 
 func (r *repoLayer) Update(ctx context.Context, id int64, info *desc.UserInfo) error {
+	// Нужно предварительно вычитать предыдущий CreatedAt
+	stored, err := r.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	createdAt := stored.CreatedAt.Unix()
+
 	idStr := strconv.FormatInt(id, 10)
 	updatedAt := time.Now().UnixNano()
 
@@ -77,10 +84,11 @@ func (r *repoLayer) Update(ctx context.Context, id int64, info *desc.UserInfo) e
 		Email:     info.Email,
 		Password:  info.Password,
 		Role:      int32(info.Role),
+		CreatedAt: createdAt,
 		UpdatedAt: &updatedAt,
 	}
 
-	err := r.cl.HashSet(ctx, idStr, user)
+	err = r.cl.HashSet(ctx, idStr, user)
 	if err != nil {
 		return err
 	}
