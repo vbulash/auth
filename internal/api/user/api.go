@@ -67,13 +67,19 @@ func (apiLayer *UsersAPI) Update(ctx context.Context, request *desc.UpdateReques
 		Email: request.Email.GetValue(),
 		Role:  int32(request.Role),
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return &empty.Empty{}, err
+	return &empty.Empty{}, nil
 }
 
 // Delete Удаление пользователя
 func (apiLayer *UsersAPI) Delete(ctx context.Context, request *desc.DeleteRequest) (*empty.Empty, error) {
 	err := apiLayer.serviceLayer.Delete(ctx, request.Id)
+	if err != nil {
+		return nil, err
+	}
 
-	return &empty.Empty{}, err
+	return &empty.Empty{}, nil
 }

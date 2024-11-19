@@ -48,7 +48,6 @@ func TestUpdate(t *testing.T) {
 			Role:     role,
 		}
 
-		// @Olezhek28: Пустой вариант вызывает ошибку теста почему-то...
 		//zeroRequest = &desc.UserInfo{
 		//	Name:     "",
 		//	Email:    "",
@@ -117,8 +116,7 @@ func TestUpdate(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
-			// Упрощенный вариант инициализации сервиса - без менеджера транзакций
-			service := user.NewUserService(userRepositoryMock, nil)
+			service := user.NewUserService(userRepositoryMock)
 
 			err := service.Update(tt.args.ctx, tt.args.id, tt.args.request)
 			require.Equal(t, tt.err, err)

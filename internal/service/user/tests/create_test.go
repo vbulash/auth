@@ -94,8 +94,7 @@ func TestCreate(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
-			// Упрощенный вариант инициализации сервиса - без менеджера транзакций
-			service := user.NewUserService(userRepositoryMock, nil)
+			service := user.NewUserService(userRepositoryMock)
 
 			resHandler, err := service.Create(tt.args.ctx, tt.args.request)
 			require.Equal(t, tt.err, err)

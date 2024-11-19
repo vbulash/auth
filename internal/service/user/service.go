@@ -3,8 +3,6 @@ package user
 import (
 	"context"
 
-	"github.com/vbulash/platform_common/pkg/client/db"
-
 	"github.com/vbulash/auth/internal/converter"
 	"github.com/vbulash/auth/internal/model"
 	"github.com/vbulash/auth/internal/repository"
@@ -13,60 +11,31 @@ import (
 
 type serviceLayer struct {
 	repoLayer repository.UserRepository
-	txManager db.TxManager
 }
 
 // NewUserService Создание сервисного слоя
-func NewUserService(repo repository.UserRepository, txManager db.TxManager) service.UserService {
+func NewUserService(repo repository.UserRepository) service.UserService {
 	return &serviceLayer{
 		repoLayer: repo,
-		txManager: txManager,
 	}
 }
 
 func (s *serviceLayer) Create(ctx context.Context, info *model.UserInfo) (int64, error) {
-	var id int64
-	var err error
-	if nil == s.txManager { // Ветка для упрощенного юнит-теста
-		id, err = s.repoLayer.Create(ctx, converter.ModelUserInfoToDescUserInfo(info))
-		if err != nil {
-			return 0, err
-		}
-	} else {
-		err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-			var err error
-			id, err = s.repoLayer.Create(ctx, converter.ModelUserInfoToDescUserInfo(info))
-			if err != nil {
-				return err
-			}
-			// ..
-			return nil
-		})
+	id, err := s.repoLayer.Create(ctx, converter.ModelUserInfoToDescUserInfo(info))
+	if err != nil {
+		return 0, err
 	}
 
-	// Транслируем внутреннюю ошибку во внешнюю без преобразования - хотя надо бы
-	return id, err
+	return id, nil
 }
 
 func (s *serviceLayer) Get(ctx context.Context, id int64) (*model.User, error) {
-	var user *model.User
-	var err error
-	if nil == s.txManager { // Ветка для упрощенного юнит-теста
-		user, err = s.repoLayer.Get(ctx, id)
-	} else {
-		err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-			var err error
-			user, err = s.repoLayer.Get(ctx, id)
-			if err != nil {
-				return err
-			}
-			// ...
-			return nil
-		})
+	user, err := s.repoLayer.Get(ctx, id)
+	if err != nil {
+		return nil, err
 	}
 
-	// Транслируем внутреннюю ошибку во внешнюю без преобразования - хотя надо бы
-	return user, err
+	return user, nil
 }
 
 func (s *serviceLayer) Update(ctx context.Context, id int64, info *model.UserInfo) error {
@@ -74,40 +43,19 @@ func (s *serviceLayer) Update(ctx context.Context, id int64, info *model.UserInf
 		return nil
 	}
 
-	var err error
-	if nil == s.txManager { // Ветка для упрощенного юнит-теста
-		err = s.repoLayer.Update(ctx, id, converter.ModelUserInfoToDescUserInfo(info))
-	} else {
-		err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-			err := s.repoLayer.Update(ctx, id, converter.ModelUserInfoToDescUserInfo(info))
-			if err != nil {
-				return err
-			}
-			// ...
-			return nil
-		})
+	err := s.repoLayer.Update(ctx, id, converter.ModelUserInfoToDescUserInfo(info))
+	if err != nil {
+		return err
 	}
 
-	// Транслируем внутреннюю ошибку во внешнюю без преобразования - хотя надо бы
-	return err
+	return nil
 }
 
 func (s *serviceLayer) Delete(ctx context.Context, id int64) error {
-	var err error
-
-	if nil == s.txManager { // Ветка для упрощенного юнит-теста
-		err = s.repoLayer.Delete(ctx, id)
-	} else {
-		err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-			err := s.repoLayer.Delete(ctx, id)
-			if err != nil {
-				return err
-			}
-			// ...
-			return nil
-		})
+	err := s.repoLayer.Delete(ctx, id)
+	if err != nil {
+		return err
 	}
 
-	// Транслируем внутреннюю ошибку во внешнюю без преобразования - хотя надо бы
-	return err
+	return nil
 }
