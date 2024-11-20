@@ -5,8 +5,10 @@ import (
 	"log"
 	"net"
 
-	"github.com/vbulash/auth/internal/closer"
+	"github.com/vbulash/platform_common/pkg/config"
+
 	desc "github.com/vbulash/auth/pkg/user_v1"
+	"github.com/vbulash/platform_common/pkg/closer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -42,6 +44,7 @@ func (app *App) Run() error {
 
 func (app *App) initDeps(ctx context.Context) error {
 	inits := []func(context.Context) error{
+		app.initConfig,
 		app.initServiceProvider,
 		app.initGRPCServer,
 	}
@@ -51,6 +54,15 @@ func (app *App) initDeps(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (app *App) initConfig(_ context.Context) error {
+	err := config.Load(".env")
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -73,11 +85,11 @@ func (app *App) initGRPCServer(ctx context.Context) error {
 }
 
 func (app *App) runGRPCServer() error {
-	list, err := net.Listen("tcp", app.serviceProvider.env.Address)
+	list, err := net.Listen("tcp", app.serviceProvider.GRPCConfig().Address())
 	if err != nil {
 		return err
 	}
-	log.Printf("Сервер GRPC работает на %s...", app.serviceProvider.env.Address)
+	log.Printf("Сервер GRPC работает на %s...", app.serviceProvider.GRPCConfig().Address())
 
 	err = app.grpcServer.Serve(list)
 	if err != nil {
