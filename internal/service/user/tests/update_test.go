@@ -48,15 +48,15 @@ func TestUpdate(t *testing.T) {
 			Role:     role,
 		}
 
-		//zeroRequest = &desc.UserInfo{
-		//	Name:     "",
-		//	Email:    "",
-		//	Password: "",
-		//	Role:     desc.Role_UNKNOWN,
-		//}
+		zeroRequest = &desc.UserInfo{
+			Name:     "",
+			Email:    "",
+			Password: "",
+			Role:     desc.Role_UNKNOWN,
+		}
 
-		info = converter.DescUserInfoToModelUserInfo(request)
-		//zeroInfo = converter.DescUserInfoToModelUserInfo(zeroRequest)
+		info     = converter.DescUserInfoToModelUserInfo(request)
+		zeroInfo = converter.DescUserInfoToModelUserInfo(zeroRequest)
 	)
 	defer t.Cleanup(mc.Finish)
 
@@ -94,20 +94,20 @@ func TestUpdate(t *testing.T) {
 				return mock
 			},
 		},
-		//{
-		//	name: "Пустой вариант",
-		//	args: args{
-		//		ctx:     ctx,
-		//		id:      id,
-		//		request: zeroInfo,
-		//	},
-		//	err: nil,
-		//	userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-		//		mock := repositoryMocks.NewUserRepositoryMock(mc)
-		//		mock.UpdateMock.Expect(ctx, id, zeroRequest).Return(nil)
-		//		return mock
-		//	},
-		//},
+		{
+			name: "Пустой вариант",
+			args: args{
+				ctx:     ctx,
+				id:      id,
+				request: zeroInfo,
+			},
+			err: nil,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				//mock.UpdateMock.Expect(ctx, id, zeroRequest).Return(nil)
+				return mock
+			},
+		},
 	}
 
 	for _, tt := range tests {
