@@ -5,11 +5,13 @@ go 1.23.3
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/brianvoe/gofakeit/v6 v6.28.0
-	github.com/gojuno/minimock/v3 v3.4.2
+	github.com/gojuno/minimock/v3 v3.4.3
 	github.com/golang/protobuf v1.5.4
 	github.com/gomodule/redigo v1.9.2
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
 	github.com/stretchr/testify v1.9.0
-	github.com/vbulash/platform_common v1.0.4
+	github.com/vbulash/platform_common v1.0.6
+	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697
 	google.golang.org/grpc v1.68.0
 	google.golang.org/protobuf v1.35.2
 )
@@ -31,6 +33,6 @@ require (
 	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241113202542-65e8d215514f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

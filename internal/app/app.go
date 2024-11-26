@@ -4,6 +4,11 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
+	"sync"
+	"time"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	"github.com/vbulash/platform_common/pkg/config"
 
@@ -18,6 +23,7 @@ import (
 type App struct {
 	serviceProvider *serviceProvider
 	grpcServer      *grpc.Server
+	httpServer      *http.Server
 }
 
 // NewApp Инициализация приложения
@@ -39,7 +45,31 @@ func (app *App) Run() error {
 		closer.Wait()
 	}()
 
-	return app.runGRPCServer()
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		err := app.runGRPCServer()
+		if err != nil {
+			log.Fatalf("failed to run GRPC server: %v", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		err := app.runHTTPServer()
+		if err != nil {
+			log.Fatalf("failed to run HTTP server: %v", err)
+		}
+	}()
+
+	wg.Wait()
+
+	return nil
+
 }
 
 func (app *App) initDeps(ctx context.Context) error {
@@ -47,6 +77,7 @@ func (app *App) initDeps(ctx context.Context) error {
 		app.initConfig,
 		app.initServiceProvider,
 		app.initGRPCServer,
+		app.initHTTPServer,
 	}
 
 	for _, f := range inits {
@@ -84,6 +115,27 @@ func (app *App) initGRPCServer(ctx context.Context) error {
 	return nil
 }
 
+func (app *App) initHTTPServer(ctx context.Context) error {
+	mux := runtime.NewServeMux()
+
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+
+	err := desc.RegisterAuthV1HandlerFromEndpoint(ctx, mux, app.serviceProvider.GRPCConfig().Address(), opts)
+	if err != nil {
+		return err
+	}
+
+	app.httpServer = &http.Server{
+		Addr:              app.serviceProvider.HTTPConfig().Address(),
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	return nil
+}
+
 func (app *App) runGRPCServer() error {
 	list, err := net.Listen("tcp", app.serviceProvider.GRPCConfig().Address())
 	if err != nil {
@@ -92,6 +144,17 @@ func (app *App) runGRPCServer() error {
 	log.Printf("Сервер GRPC работает на %s...", app.serviceProvider.GRPCConfig().Address())
 
 	err = app.grpcServer.Serve(list)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (app *App) runHTTPServer() error {
+	log.Printf("HTTP server is running on %s", app.serviceProvider.HTTPConfig().Address())
+
+	err := app.httpServer.ListenAndServe()
 	if err != nil {
 		return err
 	}
