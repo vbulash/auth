@@ -5,6 +5,7 @@ go 1.23.3
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/brianvoe/gofakeit/v6 v6.28.0
+	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/gojuno/minimock/v3 v3.4.3
 	github.com/golang/protobuf v1.5.4
 	github.com/gomodule/redigo v1.9.2
