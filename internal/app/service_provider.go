@@ -30,6 +30,7 @@ type serviceProvider struct {
 	httpConfig    config.HTTPConfig
 	redisConfig   config.RedisConfig
 	storageConfig config.StorageConfig
+	swaggerConfig config.SwaggerConfig
 
 	redisPool   *redigo.Pool
 	redisClient cache.RedisClient
@@ -112,6 +113,19 @@ func (s *serviceProvider) StorageConfig() config.StorageConfig {
 	}
 
 	return s.storageConfig
+}
+
+func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
+	if s.swaggerConfig == nil {
+		cfg, err := env.NewSwaggerConfig()
+		if err != nil {
+			log.Fatalf("failed to get swagger config: %s", err.Error())
+		}
+
+		s.swaggerConfig = cfg
+	}
+
+	return s.swaggerConfig
 }
 
 // DBClient Клиент БД

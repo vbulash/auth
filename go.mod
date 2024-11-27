@@ -10,8 +10,10 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gomodule/redigo v1.9.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
-	github.com/stretchr/testify v1.9.0
-	github.com/vbulash/platform_common v1.0.6
+	github.com/rakyll/statik v0.1.7
+	github.com/rs/cors v1.11.1
+	github.com/stretchr/testify v1.10.0
+	github.com/vbulash/platform_common v1.0.7
 	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697
 	google.golang.org/grpc v1.68.0
 	google.golang.org/protobuf v1.35.2
